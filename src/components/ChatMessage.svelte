@@ -18,21 +18,8 @@
 		return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 	}
 
-	// Generate user color based on username for consistent avatar colors
-	function getUserColor(username) {
-		// Simple hash function to get a number from the username
-		const hash = username.split("").reduce((acc, char) => {
-			return acc + char.charCodeAt(0);
-		}, 0);
-
-		// Generate a hue value between 0 and 360
-		const hue = hash % 360;
-
-		// Return an HSL color with high saturation and medium lightness
-		return `hsl(${hue}, 70%, 40%)`;
-	}
-
-	$: avatarColor = getUserColor(message.who);
+	// Use consistent avatar color for all users
+	const avatarColor = "hsl(var(--secondary))";
 </script>
 
 <div
@@ -58,9 +45,9 @@
 	<div class="flex flex-col {isSelf ? 'items-end' : 'items-start'} max-w-[75%]">
 		<div
 			class="
-			px-4
+			px-3
 			py-2
-			rounded-2xl
+			rounded-xl
 			shadow-sm
 			{isSelf
 				? 'bg-primary text-primary-foreground rounded-br-sm'

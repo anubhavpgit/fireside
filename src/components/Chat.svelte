@@ -195,7 +195,7 @@
 
 {#if $username}
 	<Card
-		class="flex flex-col h-full mt-4 bg-background border-border overflow-hidden"
+		class="flex flex-col h-full mt-3 bg-background border-border overflow-hidden"
 	>
 		{#if error}
 			<div
