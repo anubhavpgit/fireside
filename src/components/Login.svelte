@@ -5,6 +5,20 @@
 		authError as globalError,
 	} from "../stores/user.js";
 
+	// Import shadcn components
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardFooter,
+		CardHeader,
+		CardTitle,
+	} from "$lib/components/ui/card";
+	import { Input } from "$lib/components/ui/input";
+	import { Button } from "$lib/components/ui/button";
+	import { Separator } from "$lib/components/ui/separator";
+	import { Badge } from "$lib/components/ui/badge";
+
 	let username = "";
 	let password = "";
 	let isLoading = false;
@@ -84,150 +98,103 @@
 	}
 </script>
 
-<div class="login-container">
-	<h2>Welcome to Fireside Chat</h2>
-	<p class="subtitle">Secure, encrypted messaging</p>
+<div class="flex items-center justify-center h-full py-6">
+	<Card class="w-full max-w-md border-border bg-card shadow-lg">
+		<CardHeader class="space-y-1 text-center">
+			<div class="flex justify-center mb-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="40"
+					height="40"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="text-primary"
+				>
+					<path
+						d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"
+					/>
+				</svg>
+			</div>
+			<CardTitle class="text-2xl font-semibold">Welcome to Fireside</CardTitle>
+			<CardDescription class="text-muted-foreground">
+				Secure, end-to-end encrypted messaging
+			</CardDescription>
+			{#if errorMessage}
+				<Badge variant="destructive" class="w-full py-1 mt-2">
+					{errorMessage}
+				</Badge>
+			{/if}
+		</CardHeader>
+		<CardContent>
+			<form on:submit|preventDefault={login} class="space-y-4">
+				<div class="space-y-2">
+					<label for="username" class="text-sm font-medium text-foreground"
+						>Username</label
+					>
+					<Input
+						id="username"
+						name="username"
+						bind:value={username}
+						placeholder="Enter username"
+						minlength="3"
+						maxlength="16"
+						disabled={isLoading}
+						required
+						class="bg-background border-border"
+					/>
+				</div>
 
-	<form on:submit|preventDefault={login} class="login-form">
-		{#if errorMessage}
-			<div class="error-message">{errorMessage}</div>
-		{/if}
+				<div class="space-y-2">
+					<label for="password" class="text-sm font-medium text-foreground"
+						>Password</label
+					>
+					<Input
+						id="password"
+						name="password"
+						type="password"
+						bind:value={password}
+						placeholder="Enter password"
+						disabled={isLoading}
+						required
+						class="bg-background border-border"
+					/>
+				</div>
 
-		<label for="username">Username</label>
-		<input
-			id="username"
-			name="username"
-			bind:value={username}
-			minlength="3"
-			maxlength="16"
-			type="text"
-			disabled={isLoading}
-			required
-		/>
+				<Button
+					type="submit"
+					class="w-full"
+					disabled={isLoading || !username || !password}
+				>
+					{isLoading ? "Authenticating..." : "Sign In"}
+				</Button>
 
-		<label for="password">Password</label>
-		<input
-			id="password"
-			name="password"
-			bind:value={password}
-			type="password"
-			disabled={isLoading}
-			required
-		/>
+				<div class="relative my-4">
+					<Separator />
+					<span
+						class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-2 bg-card text-xs text-muted-foreground"
+						>OR</span
+					>
+				</div>
 
-		<div class="button-group">
-			<button
-				type="submit"
-				class="login-btn"
-				disabled={isLoading || !username || !password}
-			>
-				{isLoading ? "Logging in..." : "Login"}
-			</button>
-			<button
-				type="button"
-				class="signup-btn"
-				on:click={signup}
-				disabled={isLoading || !username || !password}
-			>
-				{isLoading ? "Working..." : "Sign Up"}
-			</button>
-		</div>
-	</form>
+				<Button
+					type="button"
+					variant="outline"
+					class="w-full"
+					on:click={signup}
+					disabled={isLoading || !username || !password}
+				>
+					{isLoading ? "Creating Account..." : "Create New Account"}
+				</Button>
+			</form>
+		</CardContent>
+		<CardFooter>
+			<p class="text-xs text-muted-foreground text-center w-full">
+				By using Fireside, you agree to our Terms of Service and Privacy Policy.
+			</p>
+		</CardFooter>
+	</Card>
 </div>
-
-<style>
-	.login-container {
-		max-width: 400px;
-		margin: 2rem auto;
-		padding: 2rem;
-		background-color: white;
-		border-radius: 0.5rem;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	}
-
-	h2 {
-		text-align: center;
-		margin-bottom: 0.5rem;
-		color: #4a5568;
-	}
-
-	.subtitle {
-		text-align: center;
-		margin-bottom: 2rem;
-		color: #718096;
-		font-size: 0.9rem;
-	}
-
-	.login-form {
-		display: flex;
-		flex-direction: column;
-	}
-
-	label {
-		margin-bottom: 0.5rem;
-		color: #4a5568;
-		font-weight: 500;
-	}
-
-	input {
-		padding: 0.75rem;
-		margin-bottom: 1rem;
-		border: 1px solid #e2e8f0;
-		border-radius: 0.25rem;
-		font-size: 1rem;
-	}
-
-	input:focus {
-		outline: none;
-		border-color: #3b82f6;
-		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-	}
-
-	.button-group {
-		display: flex;
-		gap: 1rem;
-		margin-top: 1rem;
-	}
-
-	button {
-		flex: 1;
-		padding: 0.75rem;
-		border: none;
-		border-radius: 0.25rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color 0.2s;
-	}
-
-	.login-btn {
-		background-color: #3b82f6;
-		color: white;
-	}
-
-	.login-btn:hover:not(:disabled) {
-		background-color: #2563eb;
-	}
-
-	.signup-btn {
-		background-color: #e2e8f0;
-		color: #4a5568;
-	}
-
-	.signup-btn:hover:not(:disabled) {
-		background-color: #cbd5e0;
-	}
-
-	button:disabled {
-		opacity: 0.7;
-		cursor: not-allowed;
-	}
-
-	.error-message {
-		padding: 0.75rem;
-		margin-bottom: 1rem;
-		background-color: #fee2e2;
-		color: #b91c1c;
-		border-radius: 0.25rem;
-		font-size: 0.875rem;
-	}
-</style>

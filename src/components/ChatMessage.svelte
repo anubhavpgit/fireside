@@ -1,4 +1,11 @@
 <script>
+	import { Avatar, AvatarFallback } from "$lib/components/ui/avatar";
+	import {
+		Tooltip,
+		TooltipContent,
+		TooltipTrigger,
+	} from "$lib/components/ui/tooltip";
+
 	export let message;
 	export let sender;
 
@@ -10,75 +17,61 @@
 		const date = new Date(timestamp);
 		return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 	}
+
+	// Generate user color based on username for consistent avatar colors
+	function getUserColor(username) {
+		// Simple hash function to get a number from the username
+		const hash = username.split("").reduce((acc, char) => {
+			return acc + char.charCodeAt(0);
+		}, 0);
+
+		// Generate a hue value between 0 and 360
+		const hue = hash % 360;
+
+		// Return an HSL color with high saturation and medium lightness
+		return `hsl(${hue}, 70%, 40%)`;
+	}
+
+	$: avatarColor = getUserColor(message.who);
 </script>
 
-<div class="message-container {isSelf ? 'self' : 'other'}">
-	<div class="message-bubble">
-		<div class="message-header">
-			<span class="sender">{message.who}</span>
-			<span class="timestamp">{formatTimestamp(message.when)}</span>
+<div
+	class="flex mb-3 items-end gap-2 fade-in {isSelf ? 'flex-row-reverse' : ''}"
+>
+	{#if !isSelf || true}
+		<div class="flex-shrink-0 mb-1">
+			<Tooltip>
+				<TooltipTrigger>
+					<Avatar class="h-8 w-8 {isSelf ? 'ml-2' : 'mr-2'}">
+						<AvatarFallback style="background-color: {avatarColor};">
+							{message.who.substring(0, 2).toUpperCase()}
+						</AvatarFallback>
+					</Avatar>
+				</TooltipTrigger>
+				<TooltipContent side={isSelf ? "left" : "right"}>
+					<p>{message.who}</p>
+				</TooltipContent>
+			</Tooltip>
 		</div>
-		<p class="message-text">{message.what}</p>
+	{/if}
+
+	<div class="flex flex-col {isSelf ? 'items-end' : 'items-start'} max-w-[75%]">
+		<div
+			class="
+			px-4
+			py-2
+			rounded-2xl
+			shadow-sm
+			{isSelf
+				? 'bg-primary text-primary-foreground rounded-br-sm'
+				: 'bg-secondary text-secondary-foreground rounded-bl-sm'}
+		"
+		>
+			<p class="text-sm whitespace-pre-wrap break-words">{message.what}</p>
+		</div>
+
+		<div class="text-xs text-muted-foreground mt-1 mx-1">
+			{formatTimestamp(message.when)}
+		</div>
 	</div>
 </div>
-
-<style>
-	.message-container {
-		display: flex;
-		margin-bottom: 0.75rem;
-		animation: fadeIn 0.3s ease-in-out;
-	}
-
-	.message-container.self {
-		justify-content: flex-end;
-	}
-
-	.message-bubble {
-		max-width: 80%;
-		padding: 0.75rem 1rem;
-		border-radius: 1.25rem;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-	}
-
-	.self .message-bubble {
-		background-color: #3b82f6;
-		color: white;
-		border-bottom-right-radius: 0.25rem;
-	}
-
-	.other .message-bubble {
-		background-color: white;
-		border-bottom-left-radius: 0.25rem;
-	}
-
-	.message-header {
-		display: flex;
-		justify-content: space-between;
-		font-size: 0.75rem;
-		margin-bottom: 0.25rem;
-	}
-
-	.self .message-header {
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.other .message-header {
-		color: #718096;
-	}
-
-	.message-text {
-		margin: 0;
-		word-break: break-word;
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-			transform: translateY(10px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-</style>

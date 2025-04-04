@@ -1,8 +1,17 @@
 <script>
 	import Login from "./Login.svelte";
+	import ChatMessage from "./ChatMessage.svelte";
 	import { onMount, onDestroy } from "svelte";
 	import { username, user, db, ENCRYPTION_KEY } from "../stores/user.js";
 	import debounce from "lodash.debounce";
+
+	// Import shadcn components
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
+	import { Textarea } from "$lib/components/ui/textarea";
+	import { Button } from "$lib/components/ui/button";
+	import { Badge } from "$lib/components/ui/badge";
+	import { Separator } from "$lib/components/ui/separator";
+	import { Card } from "$lib/components/ui/card";
 
 	// GUN and SEA imports should be in user.js, but we need SEA here
 	import SEA from "gun/sea";
@@ -15,18 +24,24 @@
 	let canAutoScroll = true;
 	let unreadMessages = false;
 	let error = null;
+	let messageAreaRef;
 
 	function autoScroll() {
-		setTimeout(() => scrollBottom?.scrollIntoView({ behavior: "auto" }), 50);
-		unreadMessages = false;
+		setTimeout(() => {
+			scrollBottom?.scrollIntoView({ behavior: "auto" });
+			unreadMessages = false;
+		}, 50);
 	}
 
 	function watchScroll(e) {
-		canAutoScroll = (e.target.scrollTop || Infinity) > lastScrollTop;
-		lastScrollTop = e.target.scrollTop;
+		const scrollArea = e.target;
+		const { scrollTop, scrollHeight, clientHeight } = scrollArea;
+		const atBottom = scrollHeight - scrollTop - clientHeight < 50;
+		canAutoScroll = atBottom;
+		lastScrollTop = scrollTop;
 	}
 
-	$: debouncedWatchScroll = debounce(watchScroll, 1000);
+	$: debouncedWatchScroll = debounce(watchScroll, 500);
 
 	// Set up message listening
 	function setupMessageListener() {
@@ -64,7 +79,7 @@
 					const when = data._.put || Date.now();
 
 					if (what) {
-						// Generate a unique ID for this message by combining timestamp and content hash
+						// Generate a unique ID for this message
 						const uniqueId =
 							when + "-" + Math.random().toString(36).substring(2, 9);
 
@@ -146,53 +161,120 @@
 		const date = new Date(timestamp);
 		return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 	}
+
+	// Function to add date separators
+	function getDateLabel(timestamp) {
+		const date = new Date(timestamp);
+		const today = new Date();
+		const yesterday = new Date(today);
+		yesterday.setDate(yesterday.getDate() - 1);
+
+		if (date.toDateString() === today.toDateString()) {
+			return "Today";
+		} else if (date.toDateString() === yesterday.toDateString()) {
+			return "Yesterday";
+		} else {
+			return date.toLocaleDateString(undefined, {
+				weekday: "long",
+				month: "short",
+				day: "numeric",
+			});
+		}
+	}
+
+	// Group messages by date
+	$: messagesByDate = messages.reduce((acc, message) => {
+		const dateLabel = getDateLabel(message.when);
+		if (!acc[dateLabel]) {
+			acc[dateLabel] = [];
+		}
+		acc[dateLabel].push(message);
+		return acc;
+	}, {});
 </script>
 
-<div class="chat-container">
-	{#if $username}
-		<div class="messages-wrapper" on:scroll={debouncedWatchScroll}>
-			{#if error}
-				<div class="error-message">{error}</div>
-			{/if}
+{#if $username}
+	<Card
+		class="flex flex-col h-full mt-4 bg-background border-border overflow-hidden"
+	>
+		{#if error}
+			<div
+				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground"
+			>
+				<span class="font-semibold">Error:</span>
+				{error}
+			</div>
+		{/if}
 
+		<ScrollArea
+			class="flex-1 px-4 py-2"
+			on:scroll={debouncedWatchScroll}
+			bind:this={messageAreaRef}
+		>
 			{#if messages.length === 0}
-				<div class="empty-state">
-					<p>No messages yet. Be the first to say hello!</p>
-				</div>
-			{/if}
-
-			{#each messages as message, i (i)}
 				<div
-					class="message-container {message.who === $username
-						? 'self'
-						: 'other'}"
+					class="flex flex-col items-center justify-center h-full text-muted-foreground p-8"
 				>
-					<div class="message-bubble">
-						<div class="message-header">
-							<span class="sender">{message.who}</span>
-							<span class="timestamp">{formatTime(message.when)}</span>
-						</div>
-						<p class="message-text">{message.what}</p>
-					</div>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="40"
+						height="40"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.5"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="mb-4 opacity-50"
+					>
+						<path
+							d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+						/>
+					</svg>
+					<p class="text-center text-sm">
+						No messages yet. Be the first to say hello!
+					</p>
 				</div>
-			{/each}
+			{:else}
+				{#each Object.entries(messagesByDate) as [dateLabel, dateMessages]}
+					<div class="relative flex py-3 items-center my-2">
+						<div class="flex-grow border-t border-border"></div>
+						<span class="flex-shrink mx-3 text-xs text-muted-foreground"
+							>{dateLabel}</span
+						>
+						<div class="flex-grow border-t border-border"></div>
+					</div>
 
-			<div class="scroll-anchor" bind:this={scrollBottom}></div>
-		</div>
+					{#each dateMessages as message, i (message.id)}
+						<ChatMessage {message} sender={$username} />
+					{/each}
+				{/each}
 
-		<div class="message-input-container">
-			<form on:submit|preventDefault={sendMessage}>
-				<textarea
+				<div class="h-1 w-1" bind:this={scrollBottom}></div>
+			{/if}
+		</ScrollArea>
+
+		<div class="mt-auto border-t border-border p-4 bg-card/30 backdrop-blur-sm">
+			<div class="flex gap-2">
+				<Textarea
 					bind:value={newMessage}
 					on:keydown={handleKeyDown}
 					placeholder="Type a message..."
 					rows="1"
-				></textarea>
-				<button type="submit" disabled={!newMessage.trim()}>
+					class="resize-none bg-background border-border"
+				/>
+
+				<Button
+					type="submit"
+					size="icon"
+					disabled={!newMessage.trim()}
+					on:click={sendMessage}
+					class="rounded-full h-10 w-10 shrink-0"
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
+						width="20"
+						height="20"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
@@ -203,199 +285,41 @@
 						<line x1="22" y1="2" x2="11" y2="13"></line>
 						<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
 					</svg>
-				</button>
-			</form>
+				</Button>
+			</div>
+
+			<div class="mt-2 text-xs text-muted-foreground text-center">
+				<span>Messages are end-to-end encrypted</span>
+			</div>
 		</div>
 
 		{#if !canAutoScroll && unreadMessages}
-			<div class="scroll-button">
-				<button on:click={autoScroll} class="new-messages">
-					↓ New messages
-				</button>
+			<div class="absolute bottom-24 left-1/2 transform -translate-x-1/2">
+				<Button
+					variant="secondary"
+					size="sm"
+					on:click={autoScroll}
+					class="rounded-full shadow-lg px-4 text-xs font-medium"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="mr-1"
+					>
+						<polyline points="6 9 12 15 18 9"></polyline>
+					</svg>
+					New messages
+				</Button>
 			</div>
 		{/if}
-	{:else}
-		<Login />
-	{/if}
-</div>
-
-<style>
-	.chat-container {
-		display: flex;
-		flex-direction: column;
-		height: calc(100vh - 64px); /* Accounting for header height */
-		position: relative;
-		overflow: hidden;
-	}
-
-	.messages-wrapper {
-		flex: 1;
-		overflow-y: auto;
-		padding: 1rem;
-		background-color: #f7f7f7;
-		scrollbar-width: none; /* Firefox */
-		-ms-overflow-style: none; /* IE/Edge */
-		display: flex;
-		flex-direction: column;
-	}
-
-	.messages-wrapper::-webkit-scrollbar {
-		display: none; /* Chrome, Safari, Opera */
-	}
-
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		flex: 1;
-		color: #a0aec0;
-		text-align: center;
-		padding: 2rem;
-	}
-
-	.error-message {
-		padding: 0.75rem;
-		margin-bottom: 1rem;
-		background-color: #fee2e2;
-		color: #b91c1c;
-		border-radius: 0.25rem;
-		font-size: 0.875rem;
-	}
-
-	.message-container {
-		display: flex;
-		margin-bottom: 0.75rem;
-		animation: fadeIn 0.3s ease-in-out;
-	}
-
-	.message-container.self {
-		justify-content: flex-end;
-	}
-
-	.message-bubble {
-		max-width: 80%;
-		padding: 0.75rem 1rem;
-		border-radius: 1.25rem;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-	}
-
-	.self .message-bubble {
-		background-color: #3b82f6;
-		color: white;
-		border-bottom-right-radius: 0.25rem;
-	}
-
-	.other .message-bubble {
-		background-color: white;
-		border-bottom-left-radius: 0.25rem;
-	}
-
-	.message-header {
-		display: flex;
-		justify-content: space-between;
-		font-size: 0.75rem;
-		margin-bottom: 0.25rem;
-	}
-
-	.self .message-header {
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.other .message-header {
-		color: #718096;
-	}
-
-	.message-text {
-		margin: 0;
-		word-break: break-word;
-	}
-
-	.message-input-container {
-		background-color: white;
-		border-top: 1px solid #e2e8f0;
-		padding: 1rem;
-		position: sticky;
-		bottom: 0;
-		width: 100%;
-		z-index: 100;
-		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	form {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	textarea {
-		flex: 1;
-		border: 1px solid #e2e8f0;
-		border-radius: 1.5rem;
-		padding: 0.75rem 1rem;
-		resize: none;
-		max-height: 100px;
-		font-family: inherit;
-		font-size: 1rem;
-		outline: none;
-	}
-
-	textarea:focus {
-		border-color: #3b82f6;
-		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-	}
-
-	button {
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 50%;
-		background-color: #3b82f6;
-		color: white;
-		border: none;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: background-color 0.2s;
-	}
-
-	button:hover:not(:disabled) {
-		background-color: #2563eb;
-	}
-
-	button:disabled {
-		background-color: #cbd5e0;
-		cursor: not-allowed;
-	}
-
-	.scroll-button {
-		position: absolute;
-		bottom: 5rem;
-		left: 50%;
-		transform: translateX(-50%);
-	}
-
-	.new-messages {
-		width: auto;
-		height: auto;
-		padding: 0.5rem 1rem;
-		border-radius: 1.5rem;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-		font-size: 0.875rem;
-	}
-
-	.scroll-anchor {
-		height: 1px;
-		width: 1px;
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-			transform: translateY(10px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-</style>
+	</Card>
+{:else}
+	<Login />
+{/if}

@@ -1,4 +1,8 @@
 <script>
+	import { Textarea } from "$lib/components/ui/textarea";
+	import { Button } from "$lib/components/ui/button";
+	import { Badge } from "$lib/components/ui/badge";
+
 	// In Svelte 5, we use events differently
 	let message = "";
 
@@ -24,20 +28,30 @@
 	}
 </script>
 
-<div class="message-input-container" on:sendMessage>
-	<form on:submit|preventDefault={handleSubmit}>
-		<textarea
+<div
+	class="message-input-container border-t border-border p-4 bg-card/30 backdrop-blur-sm"
+	on:sendMessage
+>
+	<div class="flex gap-2">
+		<Textarea
 			bind:value={message}
 			on:keydown={handleKeyDown}
 			placeholder="Type a message..."
 			rows="1"
-		></textarea>
-		<!-- svelte-ignore a11y_consider_explicit_label -->
-		<button type="submit" disabled={!message.trim()}>
+			class="resize-none bg-background border-border"
+		/>
+
+		<Button
+			type="submit"
+			size="icon"
+			disabled={!message.trim()}
+			on:click={handleSubmit}
+			class="rounded-full h-10 w-10 shrink-0"
+		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
+				width="20"
+				height="20"
 				viewBox="0 0 24 24"
 				fill="none"
 				stroke="currentColor"
@@ -48,69 +62,27 @@
 				<line x1="22" y1="2" x2="11" y2="13"></line>
 				<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
 			</svg>
-		</button>
-	</form>
+		</Button>
+	</div>
+
+	<div class="mt-2 text-xs text-muted-foreground text-center">
+		<Badge variant="outline" class="text-xs font-normal">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="10"
+				height="10"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="mr-1"
+			>
+				<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+				<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+			</svg>
+			End-to-end encrypted
+		</Badge>
+	</div>
 </div>
-
-<style>
-	.message-input-container {
-		background-color: white;
-		border-top: 1px solid #e2e8f0;
-		padding: 1rem;
-		position: sticky;
-		bottom: 0;
-		width: 100%;
-		z-index: 100; /* Ensure it's on top */
-		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	form {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	textarea {
-		flex: 1;
-		border: 1px solid #e2e8f0;
-		border-radius: 1.5rem;
-		padding: 0.75rem 1rem;
-		resize: none;
-		max-height: 100px;
-		font-family: inherit;
-		font-size: 1rem;
-		outline: none;
-	}
-
-	textarea:focus {
-		border-color: #3b82f6;
-		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-	}
-
-	button {
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 50%;
-		background-color: #3b82f6;
-		color: white;
-		border: none;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: background-color 0.2s;
-	}
-
-	button:hover:not(:disabled) {
-		background-color: #2563eb;
-	}
-
-	button:disabled {
-		background-color: #cbd5e0;
-		cursor: not-allowed;
-	}
-
-	svg {
-		width: 1.25rem;
-		height: 1.25rem;
-	}
-</style>
