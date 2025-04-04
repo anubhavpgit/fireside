@@ -16,6 +16,7 @@
 	// GUN and SEA imports should be in user.js, but we need SEA here
 	import SEA from "gun/sea";
 
+	// Message state
 	let newMessage = "";
 	let messages = [];
 	let messageListener;
@@ -25,6 +26,7 @@
 	let unreadMessages = false;
 	let error = null;
 	let messageAreaRef;
+	let debug = []; // Array to track message processing
 
 	function autoScroll() {
 		setTimeout(() => {
@@ -36,8 +38,11 @@
 	function watchScroll(e) {
 		const scrollArea = e.target;
 		const { scrollTop, scrollHeight, clientHeight } = scrollArea;
+
+		// For auto-scroll detection
 		const atBottom = scrollHeight - scrollTop - clientHeight < 50;
 		canAutoScroll = atBottom;
+
 		lastScrollTop = scrollTop;
 	}
 
@@ -47,68 +52,116 @@
 	function setupMessageListener() {
 		if (messageListener) return; // Prevent duplicate listeners
 
-		var match = {
-			".": {
-				">": new Date(+new Date() - 1 * 1000 * 60 * 60 * 3).toISOString(),
-			},
-			"-": 1,
-		};
+		console.log("Setting up message listener on node:", node);
+		messages = []; // Clear existing messages
+		debug = [];
 
-		// Get Messages with real-time updates using .on() instead of .once()
+		// SIMPLIFIED: Get ALL messages without any filtering
 		messageListener = db
 			.get(node)
-			.map(match)
+			.map()
 			.on(async (data, id) => {
 				if (!data) return;
 
-				try {
-					// Key for end-to-end encryption - using the new key
-					const key = ENCRYPTION_KEY;
+				// Log raw data for debugging
+				console.log("Raw message data:", id, data);
 
-					// Get user info and decrypt message
-					const who = (await db.user(data).get("alias")) || "Unknown";
-					let what = "";
-
-					try {
-						what = (await SEA.decrypt(data.what, key)) + "";
-					} catch (e) {
-						console.error("Decryption error:", e);
-						what = "[Encrypted message]";
-					}
-
-					const when = data._.put || Date.now();
-
-					if (what) {
-						// Generate a unique ID for this message
-						const uniqueId =
-							when + "-" + Math.random().toString(36).substring(2, 9);
-
-						// Check for duplicates with more thorough checking
-						const isDuplicate = messages.some(
-							(m) =>
-								m.who === who &&
-								m.what === what &&
-								Math.abs(m.when - when) < 1000,
-						);
-
-						if (!isDuplicate) {
-							messages = [
-								...messages.slice(-100),
-								{ who, what, when, id: uniqueId },
-							].sort((a, b) => a.when - b.when);
-
-							if (canAutoScroll) {
-								autoScroll();
-							} else {
-								unreadMessages = true;
-							}
-						}
-					}
-				} catch (err) {
-					console.error("Message processing error:", err);
-					error = err.message;
+				const processedMessage = await processMessage(data, id);
+				if (processedMessage) {
+					addMessageToList(processedMessage);
 				}
 			});
+	}
+
+	// Process a raw message data into a formatted message object
+	async function processMessage(data, id) {
+		try {
+			// Key for end-to-end encryption
+			const key = ENCRYPTION_KEY;
+
+			// Get user info and decrypt message
+			const who = (await db.user(data).get("alias")) || "Unknown";
+			let what = "";
+
+			try {
+				what = (await SEA.decrypt(data.what, key)) + "";
+			} catch (e) {
+				console.error("Decryption error:", e);
+				what = "[Encrypted message]";
+			}
+
+			// Determine message timestamp - try several approaches
+			let when;
+
+			// Method 1: Try to extract from ID (most reliable for proper ordering)
+			if (id) {
+				const parts = id.split("/");
+				const lastPart = parts[parts.length - 1];
+				if (lastPart && lastPart.includes("T")) {
+					try {
+						const timestamp = new Date(lastPart).getTime();
+						if (!isNaN(timestamp)) {
+							when = timestamp;
+						}
+					} catch (e) {
+						// Invalid date, continue to next method
+					}
+				}
+			}
+
+			// Method 2: Use GUN metadata timestamp
+			if (!when && data._ && data._.put) {
+				when = data._.put;
+			}
+
+			// Method 3: Last resort - current time
+			if (!when) {
+				when = Date.now();
+			}
+
+			if (what) {
+				// Generate a unique ID for this message
+				const uniqueId =
+					id || when + "-" + Math.random().toString(36).substring(2, 9);
+				const msg = { who, what, when, id: uniqueId, rawId: id };
+
+				// Store in debug array
+				debug.push({
+					id: uniqueId,
+					rawId: id,
+					who,
+					what,
+					when,
+					timestamp: new Date(when).toISOString(),
+				});
+
+				return msg;
+			}
+		} catch (err) {
+			console.error("Message processing error:", err);
+			error = err.message;
+		}
+
+		return null;
+	}
+
+	// Add a message to the list with deduplication
+	function addMessageToList(newMessage) {
+		if (!newMessage) return;
+
+		// Check for duplicates - modified to use the message ID
+		const isDuplicate = messages.some((m) => m.rawId === newMessage.rawId);
+
+		if (!isDuplicate) {
+			// Keep messages sorted by timestamp
+			messages = [...messages, newMessage].sort((a, b) => a.when - b.when);
+
+			if (canAutoScroll) {
+				autoScroll();
+			} else {
+				unreadMessages = true;
+			}
+		}
 	}
 
 	onMount(() => {
@@ -121,12 +174,12 @@
 	$: if ($username) {
 		setupMessageListener();
 	} else if (messageListener) {
-		messageListener.off();
+		if (messageListener.off) messageListener.off();
 		messageListener = null;
 	}
 
 	onDestroy(() => {
-		if (messageListener) {
+		if (messageListener && messageListener.off) {
 			messageListener.off();
 		}
 	});
@@ -137,8 +190,13 @@
 		try {
 			const secret = await SEA.encrypt(newMessage, ENCRYPTION_KEY);
 			const message = user.get("all").set({ what: secret });
-			const index = new Date().toISOString();
-			db.get(node).get(index).put(message);
+
+			// Use ISO timestamp as the message ID
+			const currentTime = new Date().toISOString();
+
+			// Send to database with timestamp as ID for proper chronological ordering
+			db.get(node).get(currentTime).put(message);
+
 			newMessage = "";
 			canAutoScroll = true;
 			autoScroll();
@@ -237,6 +295,12 @@
 						</p>
 					</div>
 				{:else}
+					<!-- <div class="bg-yellow-100 p-2 rounded text-sm mb-4">
+						<div class="font-bold text-yellow-800">Debug Info:</div>
+						<div>Current node: {node}</div>
+						<div>Messages found: {messages.length}</div>
+					</div> -->
+
 					{#each Object.entries(messagesByDate) as [dateLabel, dateMessages]}
 						<div class="relative flex py-3 items-center my-2">
 							<div class="flex-grow border-t border-border"></div>
