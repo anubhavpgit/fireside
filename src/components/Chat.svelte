@@ -2,7 +2,7 @@
 	import Login from "./Login.svelte";
 	import ChatMessage from "./ChatMessage.svelte";
 	import { onMount, onDestroy } from "svelte";
-	import { username, user, db, ENCRYPTION_KEY } from "../stores/user.js";
+	import { username, user, db, ENCRYPTION_KEY, node } from "../stores/user.js";
 	import debounce from "lodash.debounce";
 
 	// Import shadcn components
@@ -56,7 +56,7 @@
 
 		// Get Messages with real-time updates using .on() instead of .once()
 		messageListener = db
-			.get("fireside")
+			.get(node)
 			.map(match)
 			.on(async (data, id) => {
 				if (!data) return;
@@ -138,7 +138,7 @@
 			const secret = await SEA.encrypt(newMessage, ENCRYPTION_KEY);
 			const message = user.get("all").set({ what: secret });
 			const index = new Date().toISOString();
-			db.get("fireside").get(index).put(message);
+			db.get(node).get(index).put(message);
 			newMessage = "";
 			canAutoScroll = true;
 			autoScroll();

@@ -73,4 +73,10 @@ export function resetAuth() {
 }
 
 // Constants for encryption
-export const ENCRYPTION_KEY = "fireside.secret.chat";
+export const ENCRYPTION_KEY = import.meta.env.PROD
+	? "fireside.secret.chat.production"
+	: "fireside.secret.chat";
+
+export const node = import.meta.env.PROD
+	? 'fireside.production'
+	: 'fireside';
