@@ -1,13 +1,23 @@
 import GUN from 'gun';
 import 'gun/sea';
 import 'gun/axe';
+import 'gun/lib/radix'; // Important for storage
+import 'gun/lib/radisk'; // Important for disk storage
+import 'gun/lib/store'; // Important for IndexedDB adapter
+import 'gun/lib/rindexed'; // IndexedDB adapter
 import { writable } from 'svelte/store';
 
-// Database with reliable peers
+// Database with reliable peers and explicit local storage
 // Using multiple peers improves reliability and connection stability
-export const db = GUN([
-	'https://gun-manhattan.herokuapp.com/gun',
-]);
+export const db = GUN({
+	peers: [
+		'https://gun-manhattan.herokuapp.com/gun',
+		// Add additional peers if needed for redundancy
+	],
+	localStorage: false,         // Disable localStorage
+	radisk: true,                // Enable RadISK
+	file: 'fireside-chat-data',  // File prefix for storage
+});
 
 // Gun User with improved session handling
 export const user = db.user().recall({ sessionStorage: true });
@@ -72,11 +82,11 @@ export function resetAuth() {
 	}
 }
 
-// Constants for encryption
+// Constants for encryption and node names
 export const ENCRYPTION_KEY = import.meta.env.PROD
-	? "fireside.secret.chat.production"
-	: "fireside.secret.chat";
+	? "awesome.fireside.secret.chat.production"
+	: "awesome.fireside.secret.chat";
 
 export const node = import.meta.env.PROD
 	? 'fireside.production'
-	: 'fireside';
+	: 'fireside.local';
