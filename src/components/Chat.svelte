@@ -324,7 +324,7 @@
 		<div
 			class="mt-auto border-t border-border p-4 bg-card/30 backdrop-blur-sm flex-shrink-0"
 		>
-			<div class="flex gap-2">
+			<div class="flex gap-2 items-center">
 				<Textarea
 					bind:value={newMessage}
 					on:keydown={handleKeyDown}
