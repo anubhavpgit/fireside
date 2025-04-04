@@ -1,8 +1,10 @@
 <script>
+	import "./app.css";
 	import Chat from "./components/Chat.svelte";
 	import Login from "./components/Login.svelte";
 	import { username, user, resetAuth, db } from "./stores/user.js";
 	import "./styles/global.css";
+	import { Button } from "$lib/components/ui/button";
 
 	// Function to handle sign out
 	function handleSignOut() {
@@ -19,7 +21,9 @@
 				<div class="user-info">
 					Logged in as: <span class="username">{$username}</span>
 				</div>
-				<button class="signout-btn" on:click={handleSignOut}>Sign Out</button>
+				<Button variant="outline" size="sm" on:click={handleSignOut}
+					>Sign Out</Button
+				>
 			{/if}
 		</div>
 	</header>
@@ -76,20 +80,7 @@
 		margin-left: 0.25rem;
 	}
 
-	.signout-btn {
-		background-color: transparent;
-		border: 1px solid white;
-		color: white;
-		padding: 0.25rem 0.75rem;
-		border-radius: 0.25rem;
-		font-size: 0.875rem;
-		cursor: pointer;
-		transition: background-color 0.2s;
-	}
-
-	.signout-btn:hover {
-		background-color: rgba(255, 255, 255, 0.1);
-	}
+	/* Removed .signout-btn styles since we're using shadcn Button component */
 
 	.app-container {
 		flex: 1;
