@@ -52,7 +52,7 @@
 	function setupMessageListener() {
 		if (messageListener) return; // Prevent duplicate listeners
 
-		console.log("Setting up message listener on node:", node);
+		// console.log("Setting up message listener on node:", node);
 		messages = []; // Clear existing messages
 		debug = [];
 
@@ -64,7 +64,7 @@
 				if (!data) return;
 
 				// Log raw data for debugging
-				console.log("Raw message data:", id, data);
+				// console.log("Raw message data:", id, data);
 
 				const processedMessage = await processMessage(data, id);
 				if (processedMessage) {
