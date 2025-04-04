@@ -68,9 +68,9 @@
 	}
 </script>
 
-<main class="flex flex-col h-screen w-full bg-background text-foreground">
+<main class="fixed inset-0 flex flex-col bg-background text-foreground">
 	<header
-		class="bg-card border-b border-border h-14 flex justify-center items-center"
+		class="bg-card border-b border-border h-14 flex justify-center items-center flex-shrink-0"
 	>
 		<div
 			class="w-full max-w-3xl mx-auto px-4 flex justify-between items-center"
@@ -95,7 +95,7 @@
 				<h1 class="text-lg font-medium">Fireside</h1>
 			</div>
 
-			<div class="flex items-center gap-2">
+			<div class="flex items-center">
 				{#if $username && hasAcceptedTerms}
 					<div class="text-sm">
 						<Button
@@ -110,7 +110,7 @@
 				{/if}
 
 				{#if $username}
-					<div class="flex items-center">
+					<div class="flex items-center gap-2">
 						<Tooltip>
 							<TooltipTrigger>
 								<Avatar class="h-7 w-7 mr-2">

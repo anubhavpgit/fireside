@@ -199,62 +199,66 @@
 	>
 		{#if error}
 			<div
-				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground"
+				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground flex-shrink-0"
 			>
 				<span class="font-semibold">Error:</span>
 				{error}
 			</div>
 		{/if}
 
-		<ScrollArea
-			class="flex-1 px-4 py-2"
-			on:scroll={debouncedWatchScroll}
-			bind:this={messageAreaRef}
-		>
-			{#if messages.length === 0}
-				<div
-					class="flex flex-col items-center justify-center h-full text-muted-foreground p-8"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="40"
-						height="40"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.5"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mb-4 opacity-50"
+		<div class="flex-1 overflow-hidden relative">
+			<ScrollArea
+				class="scrollable h-full absolute inset-0 px-4 py-2"
+				on:scroll={debouncedWatchScroll}
+				bind:this={messageAreaRef}
+			>
+				{#if messages.length === 0}
+					<div
+						class="flex flex-col items-center justify-center h-full text-muted-foreground p-8"
 					>
-						<path
-							d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-						/>
-					</svg>
-					<p class="text-center text-sm">
-						No messages yet. Be the first to say hello!
-					</p>
-				</div>
-			{:else}
-				{#each Object.entries(messagesByDate) as [dateLabel, dateMessages]}
-					<div class="relative flex py-3 items-center my-2">
-						<div class="flex-grow border-t border-border"></div>
-						<span class="flex-shrink mx-3 text-xs text-muted-foreground"
-							>{dateLabel}</span
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="40"
+							height="40"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="mb-4 opacity-50"
 						>
-						<div class="flex-grow border-t border-border"></div>
+							<path
+								d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+							/>
+						</svg>
+						<p class="text-center text-sm">
+							No messages yet. Be the first to say hello!
+						</p>
 					</div>
+				{:else}
+					{#each Object.entries(messagesByDate) as [dateLabel, dateMessages]}
+						<div class="relative flex py-3 items-center my-2">
+							<div class="flex-grow border-t border-border"></div>
+							<span class="flex-shrink mx-3 text-xs text-muted-foreground"
+								>{dateLabel}</span
+							>
+							<div class="flex-grow border-t border-border"></div>
+						</div>
 
-					{#each dateMessages as message, i (message.id)}
-						<ChatMessage {message} sender={$username} />
+						{#each dateMessages as message, i (message.id)}
+							<ChatMessage {message} sender={$username} />
+						{/each}
 					{/each}
-				{/each}
 
-				<div class="h-1 w-1" bind:this={scrollBottom}></div>
-			{/if}
-		</ScrollArea>
+					<div class="h-1 w-1" bind:this={scrollBottom}></div>
+				{/if}
+			</ScrollArea>
+		</div>
 
-		<div class="mt-auto border-t border-border p-4 bg-card/30 backdrop-blur-sm">
+		<div
+			class="mt-auto border-t border-border p-4 bg-card/30 backdrop-blur-sm flex-shrink-0"
+		>
 			<div class="flex gap-2">
 				<Textarea
 					bind:value={newMessage}
