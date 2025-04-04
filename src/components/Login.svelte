@@ -19,6 +19,10 @@
 	import { Separator } from "$lib/components/ui/separator";
 	import { Badge } from "$lib/components/ui/badge";
 
+	// Event dispatcher to show legal documents
+	import { createEventDispatcher } from "svelte";
+	const dispatch = createEventDispatcher();
+
 	let username = "";
 	let password = "";
 	let isLoading = false;
@@ -95,6 +99,15 @@
 		} finally {
 			isLoading = false;
 		}
+	}
+
+	// Functions to show legal documents
+	function showTerms() {
+		dispatch("showLegal", { view: "terms" });
+	}
+
+	function showPrivacy() {
+		dispatch("showLegal", { view: "privacy" });
 	}
 </script>
 
@@ -193,7 +206,22 @@
 		</CardContent>
 		<CardFooter>
 			<p class="text-xs text-muted-foreground text-center w-full">
-				By using Fireside, you agree to our Terms of Service and Privacy Policy.
+				By using Fireside, you agree to our
+				<button
+					class="text-primary hover:underline font-medium"
+					on:click={showTerms}
+					type="button"
+				>
+					Terms of Service
+				</button>
+				and
+				<button
+					class="text-primary hover:underline font-medium"
+					on:click={showPrivacy}
+					type="button"
+				>
+					Privacy Policy
+				</button>.
 			</p>
 		</CardFooter>
 	</Card>

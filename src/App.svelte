@@ -1,22 +1,17 @@
 <script>
-	import "./app.css";
+	import { onMount } from "svelte";
+	import LegalDocuments from "./components/LegalDocuments.svelte";
 	import Chat from "./components/Chat.svelte";
 	import Login from "./components/Login.svelte";
 	import { username, user, resetAuth, db } from "./stores/user.js";
 	import "./styles/global.css";
-
-	// Import shadcn components
 	import { Button } from "$lib/components/ui/button";
 	import {
 		Tooltip,
 		TooltipContent,
 		TooltipTrigger,
 	} from "$lib/components/ui/tooltip";
-	import {
-		Avatar,
-		AvatarFallback,
-		AvatarImage,
-	} from "$lib/components/ui/avatar";
+	import { Avatar, AvatarFallback } from "$lib/components/ui/avatar";
 
 	// Function to handle sign out
 	function handleSignOut() {
@@ -24,11 +19,52 @@
 	}
 
 	// Force dark mode
-	import { onMount } from "svelte";
-
 	onMount(() => {
 		document.documentElement.classList.add("dark");
 	});
+
+	// Legal documents state
+	let showLegalDocuments = false;
+	let hasAcceptedTerms = false;
+	let currentLegalView = "terms"; // "terms" or "privacy"
+
+	// Check if user has already accepted terms
+	onMount(() => {
+		const accepted = localStorage.getItem("fireside_terms_accepted");
+		hasAcceptedTerms = accepted === "true";
+
+		// If user is logged in but hasn't accepted terms, show legal documents
+		if ($username && !hasAcceptedTerms) {
+			showLegalDocuments = true;
+		}
+	});
+
+	// Handle legal documents acceptance
+	function handleAcceptLegal() {
+		hasAcceptedTerms = true;
+		localStorage.setItem("fireside_terms_accepted", "true");
+		showLegalDocuments = false;
+	}
+
+	// Handle legal documents decline
+	function handleDeclineLegal() {
+		// If user declines, sign them out
+		resetAuth();
+		showLegalDocuments = false;
+	}
+
+	// Handle showing specific legal document
+	function handleShowLegal(event) {
+		if (event.detail && event.detail.view) {
+			currentLegalView = event.detail.view;
+		}
+		showLegalDocuments = true;
+	}
+
+	// Watch for username changes to show legal documents for new logins
+	$: if ($username && !hasAcceptedTerms) {
+		showLegalDocuments = true;
+	}
 </script>
 
 <main class="flex flex-col h-screen w-full bg-background text-foreground">
@@ -58,12 +94,25 @@
 				<h1 class="text-lg font-medium">Fireside</h1>
 			</div>
 
-			<div class="flex items-center">
+			<div class="flex items-center gap-2">
+				{#if $username && hasAcceptedTerms}
+					<div class="text-sm">
+						<Button
+							variant="ghost"
+							size="sm"
+							on:click={() => (showLegalDocuments = true)}
+							class="h-8 px-2"
+						>
+							Legal
+						</Button>
+					</div>
+				{/if}
+
 				{#if $username}
-					<div class="flex items-center gap-2">
+					<div class="flex items-center">
 						<Tooltip>
 							<TooltipTrigger>
-								<Avatar class="h-7 w-7">
+								<Avatar class="h-7 w-7 mr-2">
 									<AvatarFallback
 										class="bg-secondary text-secondary-foreground text-xs"
 									>
@@ -105,10 +154,22 @@
 	</header>
 
 	<div class="flex-1 overflow-hidden w-full max-w-3xl mx-auto px-4">
-		{#if $username}
+		{#if $username && hasAcceptedTerms}
 			<Chat />
+		{:else if $username && !hasAcceptedTerms}
+			<div class="flex items-center justify-center h-full">
+				<p class="text-muted-foreground">Please accept our terms to continue</p>
+			</div>
 		{:else}
-			<Login />
+			<Login on:showLegal={handleShowLegal} />
 		{/if}
 	</div>
+
+	<!-- Legal Documents Modal -->
+	<LegalDocuments
+		showLegal={showLegalDocuments}
+		onAcceptAll={handleAcceptLegal}
+		onDecline={handleDeclineLegal}
+		currentView={currentLegalView}
+	/>
 </main>
