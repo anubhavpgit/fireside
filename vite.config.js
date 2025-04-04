@@ -10,5 +10,6 @@ export default defineConfig({
 	},
 	build: {
 		outDir: 'docs'
-	}
+	},
+	base: 'https://anubhavp.dev/fireside/',
 });
