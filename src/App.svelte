@@ -11,6 +11,7 @@
 		TooltipContent,
 		TooltipTrigger,
 	} from "$lib/components/ui/tooltip";
+	import "./app.css";
 	import { Avatar, AvatarFallback } from "$lib/components/ui/avatar";
 
 	// Function to handle sign out
