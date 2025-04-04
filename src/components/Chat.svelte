@@ -13,7 +13,8 @@
 	import { Separator } from "$lib/components/ui/separator";
 	import { Card } from "$lib/components/ui/card";
 
-	// GUN and SEA imports should be in user.js, but we need SEA here
+	// GUN and SEA imports should be in user.js, but we need SEA here for encryption/decryption
+
 	import SEA from "gun/sea";
 
 	// Message state
@@ -26,7 +27,7 @@
 	let unreadMessages = false;
 	let error = null;
 	let messageAreaRef;
-	let debug = []; // Array to track message processing
+	let debug = []; // Array to track message processing for debugging
 
 	function autoScroll() {
 		setTimeout(() => {
@@ -56,7 +57,7 @@
 		messages = []; // Clear existing messages
 		debug = [];
 
-		// SIMPLIFIED: Get ALL messages without any filtering
+		// SIMPLIFIED: Get ALL messages without any filtering (Tod0: filter the most recent messages)
 		messageListener = db
 			.get(node)
 			.map()

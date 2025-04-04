@@ -1,15 +1,15 @@
 <script>
+	// Import shadcn components
 	import { Textarea } from "$lib/components/ui/textarea";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
 
-	// In Svelte 5, we use events differently
 	let message = "";
 
 	function handleSubmit() {
 		if (!message.trim()) return;
 
-		// In Svelte 5, we dispatch events using the on:eventname syntax directly
+		// Create a new event with the message as detail
 		const event = new CustomEvent("sendMessage", {
 			detail: message,
 		});

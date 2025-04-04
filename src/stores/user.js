@@ -12,11 +12,11 @@ const GUN_PEER_1 = import.meta.env.VITE_GUN_PEER_1 || 'https://gun-manhattan.her
 const GUN_FILE_PREFIX = import.meta.env.VITE_GUN_FILE_PREFIX || 'fireside-chat-data';
 
 // Database with reliable peers and explicit local storage
-// Using multiple peers improves reliability and connection stability
+// Using multiple peers improves reliability and connection stability (not found )
 export const db = GUN({
 	peers: [
 		GUN_PEER_1,
-		// Add additional peers if needed for redundancy
+		// Add additional peers if needed for redundancy (To-do)
 	],
 	localStorage: false,         // Disable localStorage
 	radisk: true,                // Enable RadISK

@@ -11,7 +11,7 @@
 		TooltipContent,
 		TooltipTrigger,
 	} from "$lib/components/ui/tooltip";
-	import "./app.css";
+	import "./styles/app.css";
 	import { Avatar, AvatarFallback } from "$lib/components/ui/avatar";
 
 	// Function to handle sign out
@@ -19,7 +19,9 @@
 		resetAuth();
 	}
 
-	// Force dark mode
+	// Force dark mode - the current implementation is temporary, will add theming later
+	// This is a workaround to ensure dark mode is applied
+
 	onMount(() => {
 		document.documentElement.classList.add("dark");
 	});
