@@ -7,16 +7,20 @@ import 'gun/lib/store'; // Important for IndexedDB adapter
 import 'gun/lib/rindexed'; // IndexedDB adapter
 import { writable } from 'svelte/store';
 
+// Get configuration from environment variables with fallbacks
+const GUN_PEER_1 = import.meta.env.VITE_GUN_PEER_1 || 'https://gun-manhattan.herokuapp.com/gun';
+const GUN_FILE_PREFIX = import.meta.env.VITE_GUN_FILE_PREFIX || 'fireside-chat-data';
+
 // Database with reliable peers and explicit local storage
 // Using multiple peers improves reliability and connection stability
 export const db = GUN({
 	peers: [
-		'https://gun-manhattan.herokuapp.com/gun',
+		GUN_PEER_1,
 		// Add additional peers if needed for redundancy
 	],
 	localStorage: false,         // Disable localStorage
 	radisk: true,                // Enable RadISK
-	file: 'fireside-chat-data',  // File prefix for storage
+	file: GUN_FILE_PREFIX,       // File prefix for storage
 });
 
 // Gun User with improved session handling
@@ -84,9 +88,9 @@ export function resetAuth() {
 
 // Constants for encryption and node names
 export const ENCRYPTION_KEY = import.meta.env.PROD
-	? "awesome.fireside.secret.chat.production"
-	: "awesome.fireside.secret.chat";
+	? (import.meta.env.VITE_ENCRYPTION_KEY_PROD || "awesome.fireside.secret.chat.production")
+	: (import.meta.env.VITE_ENCRYPTION_KEY_DEV || "awesome.fireside.secret.chat");
 
 export const node = import.meta.env.PROD
-	? 'fireside.production'
-	: 'fireside.local';
+	? (import.meta.env.VITE_NODE_NAME_PROD || 'fireside.production')
+	: (import.meta.env.VITE_NODE_NAME_DEV || 'fireside.local');
