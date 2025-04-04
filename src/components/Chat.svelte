@@ -64,15 +64,23 @@
 					const when = data._.put || Date.now();
 
 					if (what) {
-						// Check for duplicates before adding
+						// Generate a unique ID for this message by combining timestamp and content hash
+						const uniqueId =
+							when + "-" + Math.random().toString(36).substring(2, 9);
+
+						// Check for duplicates with more thorough checking
 						const isDuplicate = messages.some(
-							(m) => m.when === when && m.who === who && m.what === what,
+							(m) =>
+								m.who === who &&
+								m.what === what &&
+								Math.abs(m.when - when) < 1000,
 						);
 
 						if (!isDuplicate) {
-							messages = [...messages.slice(-100), { who, what, when }].sort(
-								(a, b) => a.when - b.when,
-							);
+							messages = [
+								...messages.slice(-100),
+								{ who, what, when, id: uniqueId },
+							].sort((a, b) => a.when - b.when);
 
 							if (canAutoScroll) {
 								autoScroll();
@@ -153,7 +161,7 @@
 				</div>
 			{/if}
 
-			{#each messages as message (message.when)}
+			{#each messages as message, i (i)}
 				<div
 					class="message-container {message.who === $username
 						? 'self'
