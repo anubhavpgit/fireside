@@ -1,11 +1,18 @@
 <script>
-	import { createEventDispatcher } from "svelte";
-
-	const dispatch = createEventDispatcher();
+	// In Svelte 5, we use events differently
 	let message = "";
 
 	function handleSubmit() {
-		dispatch("sendMessage", message);
+		if (!message.trim()) return;
+
+		// In Svelte 5, we dispatch events using the on:eventname syntax directly
+		const event = new CustomEvent("sendMessage", {
+			detail: message,
+		});
+
+		// Dispatch the event on the component element
+		document.querySelector(".message-input-container").dispatchEvent(event);
+
 		message = "";
 	}
 
@@ -17,7 +24,7 @@
 	}
 </script>
 
-<div class="message-input-container">
+<div class="message-input-container" on:sendMessage>
 	<form on:submit|preventDefault={handleSubmit}>
 		<textarea
 			bind:value={message}
@@ -25,6 +32,7 @@
 			placeholder="Type a message..."
 			rows="1"
 		></textarea>
+		<!-- svelte-ignore a11y_consider_explicit_label -->
 		<button type="submit" disabled={!message.trim()}>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -49,6 +57,11 @@
 		background-color: white;
 		border-top: 1px solid #e2e8f0;
 		padding: 1rem;
+		position: sticky;
+		bottom: 0;
+		width: 100%;
+		z-index: 100; /* Ensure it's on top */
+		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
 	}
 
 	form {
@@ -87,7 +100,7 @@
 		transition: background-color 0.2s;
 	}
 
-	button:hover {
+	button:hover:not(:disabled) {
 		background-color: #2563eb;
 	}
 

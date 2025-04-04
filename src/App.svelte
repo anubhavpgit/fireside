@@ -1,46 +1,26 @@
 <script>
-	import ChatWindow from "./components/ChatWindow.svelte";
-	import MessageInput from "./components/MessageInput.svelte";
-	import Header from "./components/Header.svelte";
-	import { messages } from "./stores/messages.js";
+	import Chat from "./components/Chat.svelte";
+	import Login from "./components/Login.svelte";
+	import { username } from "./stores/user.js";
 	import "./styles/global.css";
-
-	function handleSendMessage(event) {
-		const text = event.detail;
-		if (text.trim()) {
-			// In a real app, you would connect to a backend here
-			// For now, just add the message locally
-			const newMessage = {
-				id: Date.now(),
-				text,
-				sender: "You",
-				timestamp: new Date(),
-				isSelf: true,
-			};
-
-			// Update messages store
-			messages.update((msgs) => [...msgs, newMessage]);
-
-			// Simulate a response after a short delay
-			setTimeout(() => {
-				const response = {
-					id: Date.now() + 1,
-					text: "This is a simulated response to your message.",
-					sender: "Chat Bot",
-					timestamp: new Date(),
-					isSelf: false,
-				};
-				messages.update((msgs) => [...msgs, response]);
-			}, 1000);
-		}
-	}
 </script>
 
 <main>
-	<Header />
-	<div class="chat-container">
-		<ChatWindow />
-		<MessageInput on:sendMessage={handleSendMessage} />
+	<header>
+		<h1>Fireside Chat</h1>
+		{#if $username}
+			<div class="user-info">
+				Logged in as: <span class="username">{$username}</span>
+			</div>
+		{/if}
+	</header>
+
+	<div class="app-container">
+		{#if $username}
+			<Chat />
+		{:else}
+			<Login />
+		{/if}
 	</div>
 </main>
 
@@ -49,16 +29,43 @@
 		display: flex;
 		flex-direction: column;
 		height: 100vh;
-		max-width: 800px;
-		margin: 0 auto;
-		background-color: #f7f7f7;
-		box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		width: 100%;
+		background-color: #f0f2f5;
 	}
 
-	.chat-container {
+	header {
+		background-color: #4a5568;
+		color: white;
+		padding: 1rem;
 		display: flex;
-		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		height: 64px; /* Fixed header height */
+	}
+
+	h1 {
+		margin: 0;
+		font-size: 1.5rem;
+		font-weight: 600;
+	}
+
+	.user-info {
+		font-size: 0.875rem;
+		display: flex;
+		align-items: center;
+	}
+
+	.username {
+		font-weight: 600;
+		margin-left: 0.25rem;
+	}
+
+	.app-container {
 		flex: 1;
 		overflow: hidden;
+		max-width: 800px;
+		width: 100%;
+		margin: 0 auto;
 	}
 </style>
