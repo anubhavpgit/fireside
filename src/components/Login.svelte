@@ -224,9 +224,6 @@
 						disabled={isLoading}
 						class="bg-background border-border"
 					/>
-					<p class="text-xs text-muted-foreground">
-						Will be used to encrypt your messages. Remember this key!
-					</p>
 				</div>
 
 				<Button
