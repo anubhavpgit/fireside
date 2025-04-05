@@ -31,12 +31,12 @@
 	let password = "";
 	let isLoading = false;
 	let errorMessage = "";
-	
+
 	// Set default values for input fields on component mount
 	onMount(() => {
 		// Only set defaults if not already set (empty)
-		if (!$encryptionKey) encryptionKey.set('');
-		if (!$chatRoom) chatRoom.set('');
+		if (!$encryptionKey) encryptionKey.set("");
+		if (!$chatRoom) chatRoom.set("");
 	});
 
 	// Login function: Initiates Gun authentication
@@ -65,7 +65,7 @@
 
 			// Always set the encryption key if provided, otherwise use default
 			encryptionKey.set($encryptionKey || DEFAULT_ENCRYPTION_KEY);
-			
+
 			// Always set the chatroom if provided, otherwise use default node
 			chatRoom.set($chatRoom || node);
 		} catch (err) {
@@ -154,7 +154,9 @@
 				Secure, end-to-end encrypted messaging
 			</CardDescription>
 			{#if errorMessage}
-				<Badge variant="destructive" class="w-full py-1 mt-2 rounded-md">
+				<Badge
+					class="w-full py-1 mt-2 rounded-md bg-destructive/10 text-destructive"
+				>
 					{errorMessage}
 				</Badge>
 			{/if}
