@@ -79,6 +79,8 @@ export function resetAuth() {
 		// In case of corrupt session data
 		sessionStorage.removeItem('pair');
 		sessionStorage.removeItem('recall');
+		// Clear custom stores too
+		resetStores();
 		return true;
 	} catch (err) {
 		console.error('Reset auth error:', err);
@@ -92,8 +94,17 @@ export const DEFAULT_ENCRYPTION_KEY = import.meta.env.PROD
 	: (import.meta.env.VITE_ENCRYPTION_KEY_DEV || "awesome.fireside.secret.chat");
 
 // Custom encryption key and chatroom with localStorage persistence
+// Initialize with stored values or empty strings (defaults applied on login)
 export const encryptionKey = writable(localStorage.getItem('encryptionKey') || '');
 export const chatRoom = writable(localStorage.getItem('chatRoom') || '');
+
+// Reset function to clear values on logout
+export function resetStores() {
+  localStorage.removeItem('encryptionKey');
+  localStorage.removeItem('chatRoom');
+  encryptionKey.set('');
+  chatRoom.set('');
+}
 
 // Subscribe to store changes and update localStorage
 encryptionKey.subscribe(value => {

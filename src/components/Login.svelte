@@ -24,13 +24,20 @@
 	import { Badge } from "$lib/components/ui/badge";
 
 	// Event dispatcher to show legal documents
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	const dispatch = createEventDispatcher();
 
 	let username = "";
 	let password = "";
 	let isLoading = false;
 	let errorMessage = "";
+	
+	// Set default values for input fields on component mount
+	onMount(() => {
+		// Only set defaults if not already set (empty)
+		if (!$encryptionKey) encryptionKey.set('');
+		if (!$chatRoom) chatRoom.set('');
+	});
 
 	// Login function: Initiates Gun authentication
 	async function login(e) {
