@@ -130,7 +130,7 @@
 
 <div class="h-full flex items-center justify-center py-4 overflow-auto">
 	<Card class="w-full max-w-md border-border bg-card shadow-lg">
-		<CardHeader class="space-y-1 text-center">
+		<CardHeader class="space-y-1 text-center px-6 pt-2">
 			<div class="flex justify-center mb-2">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
