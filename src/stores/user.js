@@ -87,9 +87,12 @@ export function resetAuth() {
 }
 
 // Constants for encryption and node names
-export const ENCRYPTION_KEY = import.meta.env.PROD
+export const DEFAULT_ENCRYPTION_KEY = import.meta.env.PROD
 	? (import.meta.env.VITE_ENCRYPTION_KEY_PROD || "awesome.fireside.secret.chat.production")
 	: (import.meta.env.VITE_ENCRYPTION_KEY_DEV || "awesome.fireside.secret.chat");
+
+// Custom encryption key
+export const customEncryptionKey = writable('');
 
 export const node = import.meta.env.PROD
 	? (import.meta.env.VITE_NODE_NAME_PROD || 'fireside.production')

@@ -3,6 +3,7 @@
 		user,
 		isLoading as globalLoading,
 		authError as globalError,
+		customEncryptionKey,
 	} from "../stores/user.js";
 
 	// Import shadcn components
@@ -25,6 +26,7 @@
 
 	let username = "";
 	let password = "";
+	let encryptionKey = "";
 	let isLoading = false;
 	let errorMessage = "";
 
@@ -51,6 +53,9 @@
 					}
 				});
 			});
+
+			// Store the encryption key in the store
+			customEncryptionKey.set(encryptionKey || "");
 		} catch (err) {
 			console.error("Login function caught error:", err);
 			errorMessage =
@@ -177,11 +182,31 @@
 					/>
 				</div>
 
+				<div class="space-y-2">
+					<label for="encryptionKey" class="text-sm font-medium text-foreground"
+						>Encryption Key</label
+					>
+					<Input
+						id="encryptionKey"
+						name="encryptionKey"
+						type="password"
+						bind:value={encryptionKey}
+						placeholder="Enter encryption key (optional for now)"
+						disabled={isLoading}
+						class="bg-background border-border"
+					/>
+					<p class="text-xs text-muted-foreground">
+						Will be used to encrypt your messages. Remember this key!
+					</p>
+				</div>
+
 				<Button
 					type="submit"
 					class="w-full"
 					disabled={isLoading || !username || !password}
 				>
+					<!-- Add reuired -- >  || !encryptionKey  to make it more secure -->
+
 					{isLoading ? "Authenticating..." : "Sign In"}
 				</Button>
 

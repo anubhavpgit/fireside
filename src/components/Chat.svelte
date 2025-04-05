@@ -2,7 +2,7 @@
 	import Login from "./Login.svelte";
 	import ChatMessage from "./ChatMessage.svelte";
 	import { onMount, onDestroy } from "svelte";
-	import { username, user, db, ENCRYPTION_KEY, node } from "../stores/user.js";
+	import { username, user, db, DEFAULT_ENCRYPTION_KEY, customEncryptionKey, node } from "../stores/user.js";
 	import debounce from "lodash.debounce";
 
 	// Import shadcn components
@@ -77,8 +77,8 @@
 	// Process a raw message data into a formatted message object
 	async function processMessage(data, id) {
 		try {
-			// Key for end-to-end encryption
-			const key = ENCRYPTION_KEY;
+			// Key for end-to-end encryption - use custom key if provided, otherwise default
+			const key = $customEncryptionKey || DEFAULT_ENCRYPTION_KEY;
 
 			// Get user info and decrypt message
 			const who = (await db.user(data).get("alias")) || "Unknown";
@@ -189,7 +189,9 @@
 		if (!newMessage || !$username) return;
 
 		try {
-			const secret = await SEA.encrypt(newMessage, ENCRYPTION_KEY);
+			// Use custom encryption key if provided, otherwise use default
+			const encryptionKey = $customEncryptionKey || DEFAULT_ENCRYPTION_KEY;
+			const secret = await SEA.encrypt(newMessage, encryptionKey);
 			const message = user.get("all").set({ what: secret });
 
 			// Use ISO timestamp as the message ID
