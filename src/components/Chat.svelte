@@ -7,8 +7,8 @@
 		user,
 		db,
 		DEFAULT_ENCRYPTION_KEY,
-		customEncryptionKey,
-		node,
+		encryptionKey,
+		chatRoom,
 	} from "../stores/user.js";
 	import debounce from "lodash.debounce";
 
@@ -66,7 +66,7 @@
 
 		// SIMPLIFIED: Get ALL messages without any filtering (Tod0: filter the most recent messages)
 		messageListener = db
-			.get(node)
+			.get($chatRoom)
 			.map()
 			.on(async (data, id) => {
 				if (!data) return;
@@ -85,7 +85,7 @@
 	async function processMessage(data, id) {
 		try {
 			// Key for end-to-end encryption - use custom key if provided, otherwise default
-			const key = $customEncryptionKey || DEFAULT_ENCRYPTION_KEY;
+			const key = $encryptionKey;
 
 			// Get user info and decrypt message
 			const who = (await db.user(data).get("alias")) || "Unknown";
@@ -197,15 +197,15 @@
 
 		try {
 			// Use custom encryption key if provided, otherwise use default
-			const encryptionKey = $customEncryptionKey || DEFAULT_ENCRYPTION_KEY;
-			const secret = await SEA.encrypt(newMessage, encryptionKey);
+			const key = $encryptionKey;
+			const secret = await SEA.encrypt(newMessage, key);
 			const message = user.get("all").set({ what: secret });
 
 			// Use ISO timestamp as the message ID
 			const currentTime = new Date().toISOString();
 
 			// Send to database with timestamp as ID for proper chronological ordering
-			db.get(node).get(currentTime).put(message);
+			db.get($chatRoom).get(currentTime).put(message);
 
 			newMessage = "";
 			canAutoScroll = true;
@@ -270,6 +270,7 @@
 				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground flex-shrink-0 rounded-md"
 			>
 				<span class="font-semibold">Error:</span>
+				{error}
 			</div>
 		{/if}
 

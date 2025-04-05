@@ -3,7 +3,10 @@
 		user,
 		isLoading as globalLoading,
 		authError as globalError,
-		customEncryptionKey,
+		encryptionKey,
+		DEFAULT_ENCRYPTION_KEY,
+		chatRoom,
+		node,
 	} from "../stores/user.js";
 
 	// Import shadcn components
@@ -26,7 +29,6 @@
 
 	let username = "";
 	let password = "";
-	let encryptionKey = "";
 	let isLoading = false;
 	let errorMessage = "";
 
@@ -54,8 +56,11 @@
 				});
 			});
 
-			// Store the encryption key in the store
-			customEncryptionKey.set(encryptionKey || "");
+			// Always set the encryption key if provided, otherwise use default
+			encryptionKey.set($encryptionKey || DEFAULT_ENCRYPTION_KEY);
+			
+			// Always set the chatroom if provided, otherwise use default node
+			chatRoom.set($chatRoom || node);
 		} catch (err) {
 			console.error("Login function caught error:", err);
 			errorMessage =
@@ -149,7 +154,7 @@
 		</CardHeader>
 		<CardContent>
 			<form on:submit|preventDefault={login} class="space-y-4">
-				<div class="space-y-2">
+				<div class="space-y-1">
 					<label for="username" class="text-sm font-medium text-foreground"
 						>Username</label
 					>
@@ -166,7 +171,7 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
+				<div class="space-y-1">
 					<label for="password" class="text-sm font-medium text-foreground"
 						>Password</label
 					>
@@ -182,7 +187,22 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
+				<div class="space-y-1">
+					<label for="chatroom" class="text-sm font-medium text-foreground"
+						>Room</label
+					>
+					<Input
+						id="chatroom"
+						name="chatroom"
+						type="text"
+						bind:value={$chatRoom}
+						placeholder="Enter chatroom name (optional)"
+						disabled={isLoading}
+						class="bg-background border-border"
+					/>
+				</div>
+
+				<div class="space-y-1">
 					<label for="encryptionKey" class="text-sm font-medium text-foreground"
 						>Encryption Key</label
 					>
@@ -190,8 +210,8 @@
 						id="encryptionKey"
 						name="encryptionKey"
 						type="password"
-						bind:value={encryptionKey}
-						placeholder="Enter encryption key (optional for now)"
+						bind:value={$encryptionKey}
+						placeholder="Enter encryption key (optional)"
 						disabled={isLoading}
 						class="bg-background border-border"
 					/>
@@ -205,8 +225,6 @@
 					class="w-full"
 					disabled={isLoading || !username || !password}
 				>
-					<!-- Add reuired -- >  || !encryptionKey  to make it more secure -->
-
 					{isLoading ? "Authenticating..." : "Sign In"}
 				</Button>
 

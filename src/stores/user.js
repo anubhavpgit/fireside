@@ -91,8 +91,18 @@ export const DEFAULT_ENCRYPTION_KEY = import.meta.env.PROD
 	? (import.meta.env.VITE_ENCRYPTION_KEY_PROD || "awesome.fireside.secret.chat.production")
 	: (import.meta.env.VITE_ENCRYPTION_KEY_DEV || "awesome.fireside.secret.chat");
 
-// Custom encryption key
-export const customEncryptionKey = writable('');
+// Custom encryption key and chatroom with localStorage persistence
+export const encryptionKey = writable(localStorage.getItem('encryptionKey') || '');
+export const chatRoom = writable(localStorage.getItem('chatRoom') || '');
+
+// Subscribe to store changes and update localStorage
+encryptionKey.subscribe(value => {
+  if (value) localStorage.setItem('encryptionKey', value);
+});
+
+chatRoom.subscribe(value => {
+  if (value) localStorage.setItem('chatRoom', value);
+});
 
 export const node = import.meta.env.PROD
 	? (import.meta.env.VITE_NODE_NAME_PROD || 'fireside.production')
