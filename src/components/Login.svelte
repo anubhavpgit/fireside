@@ -142,7 +142,7 @@
 				Secure, end-to-end encrypted messaging
 			</CardDescription>
 			{#if errorMessage}
-				<Badge variant="destructive" class="w-full py-1 mt-2">
+				<Badge variant="destructive" class="w-full py-1 mt-2 rounded-md">
 					{errorMessage}
 				</Badge>
 			{/if}

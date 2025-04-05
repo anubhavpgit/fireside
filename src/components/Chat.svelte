@@ -2,7 +2,14 @@
 	import Login from "./Login.svelte";
 	import ChatMessage from "./ChatMessage.svelte";
 	import { onMount, onDestroy } from "svelte";
-	import { username, user, db, DEFAULT_ENCRYPTION_KEY, customEncryptionKey, node } from "../stores/user.js";
+	import {
+		username,
+		user,
+		db,
+		DEFAULT_ENCRYPTION_KEY,
+		customEncryptionKey,
+		node,
+	} from "../stores/user.js";
 	import debounce from "lodash.debounce";
 
 	// Import shadcn components
@@ -260,7 +267,7 @@
 	>
 		{#if error}
 			<div
-				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground flex-shrink-0"
+				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground flex-shrink-0 rounded-md"
 			>
 				<span class="font-semibold">Error:</span>
 				{error}
