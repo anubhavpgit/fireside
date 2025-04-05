@@ -128,31 +128,35 @@
 	}
 </script>
 
-<div class="h-full flex items-center justify-center py-6 overflow-hidden">
+<div
+	class="h-full flex items-center justify-center py-6 sm:py-3 overflow-hidden"
+>
 	<Card
-		class="w-full max-w-md border-border bg-card shadow-lg max-h-[95vh] overflow-y-auto"
+		class="w-full max-w-md border-border bg-card shadow-lg max-h-[95vh] sm:max-h-[85vh] overflow-y-auto"
 	>
-		<CardHeader class="space-y-1 text-center">
-			<div class="flex justify-center mb-2">
+		<CardHeader class="space-y-1 text-center sm:py-3">
+			<div class="flex justify-center mb-2 sm:mb-1">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="40"
 					height="40"
+					class="sm:w-8 sm:h-8 text-primary"
 					viewBox="0 0 24 24"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.5"
 					stroke-linecap="round"
 					stroke-linejoin="round"
-					class="text-primary"
 				>
 					<path
 						d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"
 					/>
 				</svg>
 			</div>
-			<CardTitle class="text-2xl font-semibold">Welcome to Fireside</CardTitle>
-			<CardDescription class="text-muted-foreground">
+			<CardTitle class="text-2xl sm:text-xl font-semibold"
+				>Welcome to Fireside</CardTitle
+			>
+			<CardDescription class="sm:text-sm text-muted-foreground">
 				Secure, end-to-end encrypted messaging
 			</CardDescription>
 			{#if errorMessage}
@@ -163,8 +167,8 @@
 				</Badge>
 			{/if}
 		</CardHeader>
-		<CardContent>
-			<form on:submit|preventDefault={login} class="space-y-4">
+		<CardContent class="sm:py-3">
+			<form on:submit|preventDefault={login} class="space-y-4 sm:space-y-3">
 				<div class="space-y-1">
 					<label for="username" class="text-sm font-medium text-foreground"
 						>Username</label
@@ -236,7 +240,7 @@
 					{isLoading ? "Authenticating..." : "Sign In"}
 				</Button>
 
-				<div class="relative my-4">
+				<div class="relative my-4 sm:my-3">
 					<Separator />
 					<span
 						class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-2 bg-card text-xs text-muted-foreground"
@@ -255,7 +259,7 @@
 				</Button>
 			</form>
 		</CardContent>
-		<CardFooter>
+		<CardFooter class="sm:py-2">
 			<p class="text-xs text-muted-foreground text-center w-full">
 				By using Fireside, you agree to our
 				<button
@@ -263,7 +267,8 @@
 					on:click={showTerms}
 					type="button"
 				>
-					Terms of Service
+					<span class="sm:hidden">Terms of Service</span>
+					<span class="hidden sm:inline">Terms</span>
 				</button>
 				and
 				<button
@@ -271,7 +276,8 @@
 					on:click={showPrivacy}
 					type="button"
 				>
-					Privacy Policy
+					<span class="sm:hidden">Privacy Policy</span>
+					<span class="hidden sm:inline">Privacy</span>
 				</button>.
 			</p>
 		</CardFooter>
