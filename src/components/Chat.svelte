@@ -265,12 +265,12 @@
 	<Card
 		class="flex flex-col h-full mt-3 bg-background border-border overflow-hidden"
 	>
-		{#if error}
+		{#if !error}
 			<div
 				class="bg-destructive/10 border-l-4 border-destructive px-4 py-2 text-sm text-foreground flex-shrink-0 rounded-md"
 			>
 				<span class="font-semibold">Error:</span>
-				{error}
+				{"This is a test error message."}
 			</div>
 		{/if}
 
