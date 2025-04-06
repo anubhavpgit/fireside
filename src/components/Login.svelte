@@ -267,8 +267,8 @@
 					on:click={showTerms}
 					type="button"
 				>
-					<span class="sm:hidden">Terms of Service</span>
-					<span class="hidden sm:inline">Terms</span>
+					<span class="hidden sm:inline">Terms of Service</span>
+					<span class="sm:hidden">Terms</span>
 				</button>
 				and
 				<button
@@ -276,8 +276,8 @@
 					on:click={showPrivacy}
 					type="button"
 				>
-					<span class="sm:hidden">Privacy Policy</span>
-					<span class="hidden sm:inline">Privacy</span>
+					<span class="hidden sm:inline">Privacy Policy</span>
+					<span class="sm:hidden">Privacy</span>
 				</button>.
 			</p>
 		</CardFooter>
