@@ -7,16 +7,18 @@ import 'gun/lib/store'; // Important for IndexedDB adapter
 import 'gun/lib/rindexed'; // IndexedDB adapter
 import { writable } from 'svelte/store';
 
-// Get configuration from environment variables with fallbacks
-const GUN_PEER_1 = import.meta.env.VITE_GUN_PEER_1 || 'https://gun-manhattan.herokuapp.com/gun';
+// Environment variables for Gun configuration
 const GUN_FILE_PREFIX = import.meta.env.VITE_GUN_FILE_PREFIX || 'fireside-chat-data';
 
 // Database with reliable peers and explicit local storage
 // Using multiple peers improves reliability and connection stability (not found )
 export const db = GUN({
 	peers: [
-		GUN_PEER_1,
-		// Add additional peers if needed for redundancy (To-do)
+		'https://gun-manhattan.herokuapp.com/gun',
+		'https://gunjs.herokuapp.com/gun',
+		'https://gun-server.glitch.me/gun',
+		'https://gun-peer.herokuapp.com/gun',
+		'https://gun-db.herokuapp.com/gun'
 	],
 	localStorage: false,         // Disable localStorage
 	radisk: true,                // Enable RadISK
@@ -100,19 +102,19 @@ export const chatRoom = writable(localStorage.getItem('chatRoom') || '');
 
 // Reset function to clear values on logout
 export function resetStores() {
-  localStorage.removeItem('encryptionKey');
-  localStorage.removeItem('chatRoom');
-  encryptionKey.set('');
-  chatRoom.set('');
+	localStorage.removeItem('encryptionKey');
+	localStorage.removeItem('chatRoom');
+	encryptionKey.set('');
+	chatRoom.set('');
 }
 
 // Subscribe to store changes and update localStorage
 encryptionKey.subscribe(value => {
-  if (value) localStorage.setItem('encryptionKey', value);
+	if (value) localStorage.setItem('encryptionKey', value);
 });
 
 chatRoom.subscribe(value => {
-  if (value) localStorage.setItem('chatRoom', value);
+	if (value) localStorage.setItem('chatRoom', value);
 });
 
 export const node = import.meta.env.PROD

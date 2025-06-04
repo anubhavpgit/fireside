@@ -425,7 +425,10 @@
 					variant="outline"
 					class="w-full"
 					on:click={signup}
-					disabled={isLoading || !username || usernameCheckState === "taken"}
+					disabled={isLoading ||
+						!username ||
+						!password ||
+						usernameCheckState === "taken"}
 				>
 					{isLoading ? "Creating Account..." : "Create New Account"}
 				</Button>
