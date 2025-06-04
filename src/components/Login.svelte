@@ -1,8 +1,6 @@
 <script>
 	import {
 		user,
-		isLoading as globalLoading,
-		authError as globalError,
 		encryptionKey,
 		DEFAULT_ENCRYPTION_KEY,
 		chatRoom,
@@ -40,7 +38,15 @@
 	let errorMessage = "";
 
 	// Username availability checking
-	let usernameCheckState = "idle"; // 'idle', 'checking', 'available', 'taken', 'error'
+	const USERNAMESTATES = {
+		IDLE: "idle",
+		CHECKING: "checking",
+		AVAILABLE: "available",
+		TAKEN: "taken",
+		ERROR: "error",
+	};
+	let usernameCheckState = USERNAMESTATES.IDLE; // Initial state
+
 	let usernameCheckDebounced;
 
 	// Set default values for input fields on component mount
@@ -55,12 +61,12 @@
 
 	// Reactive statement - Svelte's useEffect equivalent
 	$: if (username && username.length >= 3) {
-		usernameCheckState = "checking";
+		usernameCheckState = USERNAMESTATES.CHECKING;
 		usernameCheckDebounced(username);
 	} else if (username.length < 3 && username.length > 0) {
-		usernameCheckState = "idle";
+		usernameCheckState = USERNAMESTATES.IDLE;
 	} else if (username.length === 0) {
-		usernameCheckState = "idle";
+		usernameCheckState = USERNAMESTATES.IDLE;
 	}
 
 	async function checkUsernameAvailability(usernameToCheck) {
@@ -80,12 +86,14 @@
 
 			// Only update state if this is still the current username
 			if (usernameToCheck === username) {
-				usernameCheckState = userExists ? "taken" : "available";
+				usernameCheckState = userExists
+					? USERNAMESTATES.TAKEN
+					: USERNAMESTATES.AVAILABLE;
 			}
 		} catch (error) {
 			console.error("Username check error:", error);
 			if (usernameToCheck === username) {
-				usernameCheckState = "error";
+				usernameCheckState = USERNAMESTATES.ERROR;
 			}
 		}
 	}
@@ -93,25 +101,25 @@
 	// Get appropriate icon and color for username status
 	function getUsernameStatusIcon() {
 		switch (usernameCheckState) {
-			case "checking":
+			case USERNAMESTATES.CHECKING:
 				return {
 					icon: "loading",
 					color: "text-muted-foreground",
 					message: "Checking availability...",
 				};
-			case "available":
+			case USERNAMESTATES.AVAILABLE:
 				return {
 					icon: "check",
 					color: "text-green-500",
 					message: "Username available! - Create a new account",
 				};
-			case "taken":
+			case USERNAMESTATES.TAKEN:
 				return {
 					icon: "user",
 					color: "text-white-500",
 					message: "Welcome back!",
 				};
-			case "error":
+			case USERNAMESTATES.ERROR:
 				return {
 					icon: "warning",
 					color: "text-yellow-500",
@@ -407,7 +415,7 @@
 					class="w-full"
 					disabled={isLoading ||
 						!password ||
-						usernameCheckState === "available"}
+						usernameCheckState === USERNAMESTATES.AVAILABLE}
 				>
 					{isLoading ? "Authenticating..." : "Sign In"}
 				</Button>
@@ -428,7 +436,7 @@
 					disabled={isLoading ||
 						!username ||
 						!password ||
-						usernameCheckState === "taken"}
+						usernameCheckState === USERNAMESTATES.TAKEN}
 				>
 					{isLoading ? "Creating Account..." : "Create New Account"}
 				</Button>
