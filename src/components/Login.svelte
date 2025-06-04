@@ -7,6 +7,7 @@
 		DEFAULT_ENCRYPTION_KEY,
 		chatRoom,
 		node,
+		db,
 	} from "../stores/user.js";
 
 	// Import shadcn components
@@ -22,9 +23,15 @@
 	import { Button } from "$lib/components/ui/button";
 	import { Separator } from "$lib/components/ui/separator";
 	import { Badge } from "$lib/components/ui/badge";
+	import {
+		Tooltip,
+		TooltipContent,
+		TooltipTrigger,
+	} from "$lib/components/ui/tooltip";
 
 	// Event dispatcher to show legal documents
 	import { createEventDispatcher, onMount } from "svelte";
+	import debounce from "lodash.debounce";
 	const dispatch = createEventDispatcher();
 
 	let username = "";
@@ -32,12 +39,88 @@
 	let isLoading = false;
 	let errorMessage = "";
 
+	// Username availability checking
+	let usernameCheckState = "idle"; // 'idle', 'checking', 'available', 'taken', 'error'
+	let usernameCheckDebounced;
+
 	// Set default values for input fields on component mount
 	onMount(() => {
 		// Only set defaults if not already set (empty)
 		if (!$encryptionKey) encryptionKey.set("");
 		if (!$chatRoom) chatRoom.set("");
+
+		// Create debounced username checker
+		usernameCheckDebounced = debounce(checkUsernameAvailability, 500);
 	});
+
+	// Reactive statement - Svelte's useEffect equivalent
+	$: if (username && username.length >= 3) {
+		usernameCheckState = "checking";
+		usernameCheckDebounced(username);
+	} else if (username.length < 3 && username.length > 0) {
+		usernameCheckState = "idle";
+	} else if (username.length === 0) {
+		usernameCheckState = "idle";
+	}
+
+	async function checkUsernameAvailability(usernameToCheck) {
+		if (usernameToCheck !== username) return; // Ignore stale requests
+
+		try {
+			// Use GUN to check if user exists
+			// We'll try to get the user's public key - if it exists, user is taken
+			const userExists = await new Promise((resolve) => {
+				let timeout = setTimeout(() => resolve(false), 2000); // 2s timeout
+
+				db.get("~@" + usernameToCheck).once((data, key) => {
+					clearTimeout(timeout);
+					resolve(!!data); // Convert to boolean
+				});
+			});
+
+			// Only update state if this is still the current username
+			if (usernameToCheck === username) {
+				usernameCheckState = userExists ? "taken" : "available";
+			}
+		} catch (error) {
+			console.error("Username check error:", error);
+			if (usernameToCheck === username) {
+				usernameCheckState = "error";
+			}
+		}
+	}
+
+	// Get appropriate icon and color for username status
+	function getUsernameStatusIcon() {
+		switch (usernameCheckState) {
+			case "checking":
+				return {
+					icon: "loading",
+					color: "text-muted-foreground",
+					message: "Checking availability...",
+				};
+			case "available":
+				return {
+					icon: "check",
+					color: "text-green-500",
+					message: "Username available! - Create a new account",
+				};
+			case "taken":
+				return {
+					icon: "user",
+					color: "text-white-500",
+					message: "Welcome back!",
+				};
+			case "error":
+				return {
+					icon: "warning",
+					color: "text-yellow-500",
+					message: "Unable to check availability",
+				};
+			default:
+				return null;
+		}
+	}
 
 	// Login function: Initiates Gun authentication
 	async function login(e) {
@@ -173,17 +256,104 @@
 					<label for="username" class="text-sm font-medium text-foreground"
 						>Username</label
 					>
-					<Input
-						id="username"
-						name="username"
-						bind:value={username}
-						placeholder="Enter username"
-						minlength="3"
-						maxlength="16"
-						disabled={isLoading}
-						required
-						class="bg-background border-border"
-					/>
+					<div class="relative">
+						<Input
+							id="username"
+							name="username"
+							bind:value={username}
+							placeholder="Enter username"
+							minlength="3"
+							maxlength="16"
+							disabled={isLoading}
+							required
+							class="bg-background border-border pr-10"
+						/>
+
+						<!-- Username status indicator -->
+						{#if getUsernameStatusIcon()}
+							{@const statusInfo = getUsernameStatusIcon()}
+							<div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+								<Tooltip>
+									<TooltipTrigger>
+										<div class={`${statusInfo.color} transition-colors`}>
+											{#if statusInfo.icon === "loading"}
+												<svg
+													class="animate-spin h-4 w-4"
+													xmlns="http://www.w3.org/2000/svg"
+													fill="none"
+													viewBox="0 0 24 24"
+												>
+													<circle
+														class="opacity-25"
+														cx="12"
+														cy="12"
+														r="10"
+														stroke="currentColor"
+														stroke-width="4"
+													></circle>
+													<path
+														class="opacity-75"
+														fill="currentColor"
+														d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+													></path>
+												</svg>
+											{:else if statusInfo.icon === "check"}
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="16"
+													height="16"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												>
+													<polyline points="20 6 9 17 4 12"></polyline>
+												</svg>
+											{:else if statusInfo.icon === "user"}
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="16"
+													height="16"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												>
+													<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+													></path>
+													<circle cx="12" cy="7" r="4"></circle>
+												</svg>
+											{:else if statusInfo.icon === "warning"}
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="16"
+													height="16"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												>
+													<triangle points="7.86 2 16.14 2 22 16 2 16 7.86 2"
+													></triangle>
+													<line x1="12" y1="9" x2="12" y2="13"></line>
+													<line x1="12" y1="17" x2="12.01" y2="17"></line>
+												</svg>
+											{/if}
+										</div>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p class="text-xs">{statusInfo.message}</p>
+									</TooltipContent>
+								</Tooltip>
+							</div>
+						{/if}
+					</div>
 				</div>
 
 				<div class="space-y-1">
@@ -235,7 +405,9 @@
 				<Button
 					type="submit"
 					class="w-full"
-					disabled={isLoading || !username || !password}
+					disabled={isLoading ||
+						!password ||
+						usernameCheckState === "available"}
 				>
 					{isLoading ? "Authenticating..." : "Sign In"}
 				</Button>
@@ -253,7 +425,7 @@
 					variant="outline"
 					class="w-full"
 					on:click={signup}
-					disabled={isLoading || !username || !password}
+					disabled={isLoading || !username || usernameCheckState === "taken"}
 				>
 					{isLoading ? "Creating Account..." : "Create New Account"}
 				</Button>
